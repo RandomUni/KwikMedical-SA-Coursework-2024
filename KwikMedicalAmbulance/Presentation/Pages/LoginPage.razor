@@ -1,0 +1,79 @@
+﻿@page "/"
+@using KwikMedicalAmbulance.AmbulanceManager.Database.DataModel
+@using KwikMedicalAmbulance.Presentation
+@using Microsoft.AspNetCore.Components.Forms
+@inject AppState AppState
+@inject NavigationManager NavigationManager
+
+<EditForm Model=@Login OnValidSubmit=@logInto>
+    <h3>Login</h3>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group row">
+        <label for="Username" class="col-sm-5 col-form-label">
+            Username
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Username" class="form-control" placeholder="Username" @bind-Value="Login.Username" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Password" class="col-sm-5 col-form-label">
+            Password
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Password" class="form-control" placeholder="Password" @bind-Value="Login.Password" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Ambulance" class="col-sm-5 col-form-label">
+            Ambulance Id
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Ambulance" class="form-control" placeholder="Ambulance Id" @bind-Value="Login.AmbulanceID" />
+        </div>
+    </div>
+    <div class="alert alert-primary @HideAlert" role="alert">
+        @AlertContent
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary" />
+</EditForm>
+
+@code {
+
+    LoginRequest Login = new LoginRequest();
+    private string HideAlert { get; set; } = "d-none";
+    private string AlertContent { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        if (AppState.AmbulanceID != null && AppState.User != null)
+        {
+            NavigationManager.NavigateTo("/requests");
+        }
+    }
+    
+
+    public void logInto()
+    {
+        State state = LoginManager.Login(Login);
+        if (state == State.OK)
+        {
+            AppState.User = new User(Login.Username);
+            AppState.AmbulanceID = Login.AmbulanceID;
+            NavigationManager.NavigateTo("/requests");
+        }
+        else
+        {
+            HideAlert = "";
+            if (state == State.NO_USER)
+            {
+                AlertContent = "No User found";
+            }
+            else if (state == State.NO_AMBULANCE)
+            {
+                AlertContent = "Could not allocate ambulance with this id";
+            }
+        }
+    }
+}

@@ -1,0 +1,138 @@
+﻿@page "/details"
+@using KwikMedicalHospital.HospitalCenter.Database.DataModel
+@using Microsoft.AspNetCore.Components.Forms
+ @inject AppState AppState
+ @inject NavigationManager NavigationManager
+
+<EditForm Model=@ThisReq  OnValidSubmit=@createReq >
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <h3>Report an incident</h3>
+    <div>In case name or NHS Number is not available, please put John or Jane Doe as a name</div>
+    <hr />
+    <label style="color:orangered"   id="Non_allocable_sev">
+        Please ensure condition and severity is allocated! </label>
+    <div class="form-group row">  
+        <label for="PatientName" class="col-sm-5 col-form-label">
+            Patient's Name (Should be pre-filled with NHS number)
+        </label>
+        <div class="col-sm-5">
+            <label for="PatientName" class="col-sm-5 col-form-label">
+                Patients Name
+            </label>
+            <InputText id="PatientName" class="form-control" placeholder="Patient's Name" @bind-Value="ThisReq.PatientName" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="NHS number" class="col-sm-5 col-form-label">
+            NHS Number
+        </label>
+        <div class="col-sm-5">
+            <InputText id="NHS Number" class="form-control" placeholder="NHS Number" @bind-Value="ThisReq.NHSNumber" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Incident's  Location" class="col-sm-5 col-form-label">
+            Incident's  Location
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Incident's  Location" class="form-control" placeholder="Incident's  Location" @bind-Value="ThisReq.Address" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Condition" class="col-sm-5 col-form-label">
+            Medical Condition
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Condition" class="form-control" placeholder="Medical Condition" @bind-Value="ThisReq.Condition" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Severity" class="col-sm-10 col-form-label">
+            Condition's Severity 1-4 (Numerical, 1 being most severe) Only needed if cannot be calculated based on Condition or message
+            Can be used to fast-track calculation, if can be clearly discerned by first-responders
+        </label>
+        <div class="col-sm-2">
+            <InputNumber id="Severity" class="form-control" placeholder="Severity" @bind-Value="ThisReq.Severity" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Message" class="col-sm-5 col-form-label">
+            (Optional)
+            Message about the condition, only needed to discern severity and for QA improvements
+            Can be omitted if condition or severity is clear
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Message" class="form-control" placeholder="Message" @bind-Value="ThisReq.Message" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Time" class="col-sm-5 col-form-label">
+            Time request was received by call center: @ThisReq.TimeReceived
+        </label>
+    </div>
+    <div class="form-group row">
+        <label for="Ambulance" class="col-sm-5 col-form-label">
+            Allocate Ambulance, if severity of case is lower than 1 or 2 but an ambulance is required
+        </label>
+        <label class="col-sm-5 col-form-label">
+            Available Ambulances
+        </label>
+        <table class='table' OnReady="OnTableReady" Selection="true" SelectionMode="TableSelectionMode.Extended" >
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Current Location</th>
+                    <th>Status</th>
+                    <th>Owning Hospital</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (Ambulance ambulance in ambulances)
+                {
+                    <tr>
+                        <td>@ambulance.Id</td>
+                        <td>@ambulance.Location</td>
+                        <td>@ambulance.Status</td>
+                        <td>@ambulance.HospitalId</td>
+                        <input value="Add Ambulance" onclick=@setAmbulanceId(ambulance) class="btn btn-primary" />
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary"/>
+</EditForm>
+<h3>DetailsForm</h3>
+
+@code {
+
+    SubmittableRequest ThisReq { get; set; }
+    List<Ambulance> ambulances { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (AppState.Request is null )
+        {
+            return;
+        }
+        else
+        {
+            ThisReq = new SubmittableRequest(AppState.Request);
+            ambulances = ManageIncidentResponse.getAmbulances();
+        }
+    }
+
+    public void createReq()
+    {
+        NavigationManager.NavigateTo("/success");
+    }
+
+    public object setAmbulanceId(Ambulance selected)
+    {
+        ThisReq.AmbulanceAllocated = selected.Id;
+        return selected;
+    }
+
+}

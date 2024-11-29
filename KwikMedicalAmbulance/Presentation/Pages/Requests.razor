@@ -1,0 +1,72 @@
+﻿@page "/requests"
+@using KwikMedicalAmbulance.AmbulanceManager.Database.DataModel
+@using KwikMedicalAmbulance.Presentation
+ @inject AppState AppState
+ @inject NavigationManager NavigationManager
+
+<h3>Curently logged as @User.Username with Ambulance id: @AmbulanceID</h3>
+<input type="submit" value="Logout" onclick=@Logout class="btn btn-primary" />
+<h3>Requests</h3>
+
+@if (request == null)
+{
+<p><em>No Requests Available</em></p>
+}
+else
+{
+<table class='table' OnReady="OnTableReady" Selection="true" SelectionMode="TableSelectionMode.Extended">
+    <thead>
+        <tr>
+            <th>Severity</th>
+            <th>NHS Number</th>
+            <th>Patient Name</th>
+            <th>Incident's Location'</th>
+            <th>Condition</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+            <td>@request.Severity</td>
+            <td>@request.NHSNumber</td>
+            <td>@request.PatientName</td>
+            <td>@request.Address</td>
+            <td>@request.Condition</td>
+            <td>@request.Message</td>
+                <input type="submit" value="Handle Request" onclick=@HandleRequest class="btn btn-primary" />
+            </tr>
+    </tbody>
+</table>
+}
+
+@code {
+    public string AmbulanceID { get; set; } = "";
+    public User User { get; set; } = new User("");
+    public SubmittableRequest request { get; set; } = null;
+
+    protected override void OnInitialized()
+    {
+        if (AppState.AmbulanceID is null || AppState.User is null)
+        {
+            return;
+        }
+        else
+        {
+            AmbulanceID = AppState.AmbulanceID;
+            User = AppState.User;
+            request = ManageIncidentReports.getRequestForAmbulance(AmbulanceID);
+        }
+    }
+    public void HandleRequest()
+    {
+        AppState.Request = request;
+        NavigationManager.NavigateTo("/details");
+    }
+
+    public void Logout()
+    {
+        AppState.User = null;
+        AppState.AmbulanceID = null;
+        NavigationManager.NavigateTo("/");
+    }
+}

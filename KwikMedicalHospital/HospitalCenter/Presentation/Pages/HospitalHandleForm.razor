@@ -1,0 +1,126 @@
+﻿@page "/handle"
+@using Microsoft.AspNetCore.Components.Forms
+ @inject AppState AppState
+ @inject NavigationManager NavigationManager
+
+<EditForm Model=@ThisReq OnValidSubmit=@createReq>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <h3>Report an incident</h3>
+    <div>In case name or NHS Number is not available, please put John or Jane Doe as a name</div>
+    <hr />
+    <label style="color:orangered" id="Non_allocable_sev">
+        Please ensure condition and severity is allocated! Please provide details for any actions taken!
+    </label>
+    <div class="form-group row">
+        <label for="PatientName" class="col-sm-5 col-form-label">
+            Patient's Name (Should be pre-filled with NHS number)
+        </label>
+        <div class="col-sm-5">
+            <label for="PatientName" class="col-sm-5 col-form-label">
+                Patients Name
+            </label>
+            <InputText id="PatientName" class="form-control" placeholder="Patient's Name" @bind-Value="ThisReq.PatientName" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="NHS number" class="col-sm-5 col-form-label">
+            NHS Number
+        </label>
+        <div class="col-sm-5">
+            <InputText id="NHS Number" class="form-control" placeholder="NHS Number" @bind-Value="ThisReq.NHSNumber" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Incident's  Location" class="col-sm-5 col-form-label">
+            Incident's  Location
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Incident's  Location" class="form-control" placeholder="Incident's  Location" @bind-Value="ThisReq.Address" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Condition" class="col-sm-5 col-form-label">
+            Medical Condition
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Condition" class="form-control" placeholder="Medical Condition" @bind-Value="ThisReq.Condition" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Severity" class="col-sm-10 col-form-label">
+            Condition's Severity 1-4 (Numerical, 1 being most severe) Only change if severity provided is not representative of current condtion
+        </label>
+        <div class="col-sm-2">
+            <InputNumber id="Severity" class="form-control" placeholder="Severity" @bind-Value="ThisReq.Severity" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Message" class="col-sm-5 col-form-label">
+            (Optional)
+            Message about the condition, only needed to discern severity and for QA improvements
+            Can be omitted if condition or severity is clear
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Message" class="form-control" placeholder="Message" @bind-Value="ThisReq.Message" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Actions" class="col-sm-5 col-form-label">
+            Provide a description of all actions taken
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Actions" class="form-control" placeholder="Actions" @bind-Value="ThisReq.Actions" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Time" class="col-sm-5 col-form-label">
+            Time request was received by call center: @ThisReq.TimeReceived
+        </label>
+    </div>
+    <div class="form-group row">
+        <label for="PreviousConditions" class="col-sm-5 col-form-label">
+            Previous Conditions for the patient @request.PreviousConditions
+        </label>
+    </div>
+    <div class="form-group row">
+        <label for="Hospital" class="col-sm-5 col-form-label">
+            Provide destination hospital (ONLY CHANGE IF IMMEDIATE HOSPITAL CARE REQUIRED OR DISPATCH CENTER NOTES EXTRA INFORMATION)
+        </label>
+        <div class="col-sm-5">
+            <InputText id="Hospital" class="form-control" placeholder="Hospital" @bind-Value="ThisReq.HospitalAllocated" />
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="Time" class="col-sm-5 col-form-label">
+            Time request was received by call center: @ThisReq.TimeReceived
+        </label>
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary" />
+</EditForm>
+
+
+@code {
+
+    HospitalSubmitRequest ThisReq { get; set; } = new HospitalSubmitRequest();
+    SubmittableRequest request { get; set; } 
+
+    protected override void OnInitialized()
+    {
+        if(AppState.RequestToProcess == null || AppState.Employee == null )
+        {
+            return;
+        }
+        request = AppState.RequestToProcess;
+        ThisReq = new HospitalSubmitRequest(AppState.RequestToProcess);
+        ThisReq.HealthcareProvider = AppState.Employee.Username;
+    }
+
+    public void createReq() 
+    {
+        ThisReq.TimeSpent = ManageIncidentResponse.CalculateTime(ThisReq.TimeReceived);
+        AppState.RequestToProcess = null;
+        MauiProgram.sendReport(ThisReq.toJson(), null);
+        NavigationManager.NavigateTo("/success");
+    }
+}

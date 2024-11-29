@@ -1,0 +1,38 @@
+﻿@using KwikMedicalServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<KwikUserContext> KwikUserContextFactory;
+@inject IDbContextFactory<MedicalRequestResponseContext> MedicalRequestResponseContextFactory;
+
+<Router AppAssembly="@typeof(App).Assembly" >
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+
+@code {
+    protected async Task test()
+    {
+        if (Hubs.KwikMedicalHub.UserContext == null)
+        {
+            Hubs.KwikMedicalHub.UserContext = await KwikUserContextFactory.CreateDbContextAsync();
+        }
+        if (Hubs.KwikMedicalHub.RequestContext == null)
+        {
+            Hubs.KwikMedicalHub.RequestContext = await MedicalRequestResponseContextFactory.CreateDbContextAsync();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        test();
+    }
+
+}

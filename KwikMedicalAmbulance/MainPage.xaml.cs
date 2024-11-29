@@ -1,0 +1,10 @@
+﻿namespace KwikMedicalAmbulance
+{
+    public partial class MainPage : ContentPage
+    {
+        public MainPage()
+        {
+            InitializeComponent();
+        }
+    }
+}

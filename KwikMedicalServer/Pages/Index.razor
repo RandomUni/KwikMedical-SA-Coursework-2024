@@ -1,0 +1,14 @@
+﻿@page "/"
+@using KwikMedicalServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<KwikUserContext> KwikUserContextFactory;
+@inject IDbContextFactory<MedicalRequestResponseContext> MedicalRequestResponseContextFactory;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
